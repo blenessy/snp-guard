@@ -17,7 +17,8 @@ ROOT              ?= /dev/sda
 KERNEL_CMDLINE    ?= console=ttyS0 earlyprintk=serial root=$(ROOT)
 
 MEMORY            ?= 4096
-CPUS			  ?= 1
+CPU               ?= EPYC-v4
+CPUS              ?= 1
 POLICY            ?= 0x30000
 
 VM_HOST           ?= localhost
@@ -42,8 +43,9 @@ LUKS_IMAGE        ?= $(BUILD_DIR)/luks/image.qcow2
 LUKS_PARAMS       ?= boot=encrypted
 LUKS_KEY          ?=
 
+QEMU_EXE          ?=
 QEMU_LAUNCH_SCRIPT = ./launch.sh
-QEMU_DEF_PARAMS    = -default-network -log $(BUILD_DIR)/stdout.log -mem $(MEMORY) -smp $(CPUS)
+QEMU_DEF_PARAMS    = -default-network -log $(BUILD_DIR)/stdout.log -mem $(MEMORY) -cpu $(CPU) -smp $(CPUS)
 QEMU_EXTRA_PARAMS  = -bios $(OVMF) -policy $(POLICY)
 QEMU_SNP_PARAMS    = -sev-snp
 QEMU_KERNEL_PARAMS = -kernel $(KERNEL_PATH) -initrd $(INITRD_PATH) -append "$(KERNEL_CMDLINE)"
@@ -77,16 +79,13 @@ unpack_kernel: init_dir
 	rm -rf $(KERNEL_DIR)
 	dpkg -x $(KERNEL_DEB) $(KERNEL_DIR)
 
-build_tools: init_dir build_attestation_server
+build_tools: init_dir build_attestation_client
 
-build_attestation_server:
-	cargo build --manifest-path=tools/attestation_server/Cargo.toml
-	cp ./tools/attestation_server/target/debug/server $(BIN_DIR)
-	cp ./tools/attestation_server/target/debug/client $(BIN_DIR)
-	cp ./tools/attestation_server/target/debug/get_report $(BIN_DIR)
-	cp ./tools/attestation_server/target/debug/idblock-generator $(BIN_DIR)
-	cp ./tools/attestation_server/target/debug/sev-feature-info $(BIN_DIR)
-	cp ./tools/attestation_server/target/debug/verify_report $(BIN_DIR)
+build_attestation_client:
+	wget -q https://github.com/blenessy/go-atls/releases/download/v0.1.1/snp-attestation-client -O $(BUILD_DIR)/.snp-attestation-client.tmp
+	test 'af0480d4801efd8a1b058f88573cbf9e7cc399304851c9fbd72ac942addd698c  -' = "$$(sha256sum < $(BUILD_DIR)/.snp-attestation-client.tmp)"
+	chmod +x $(BUILD_DIR)/.snp-attestation-client.tmp
+	rsync -a $(BUILD_DIR)/.snp-attestation-client.tmp $(BIN_DIR)/snp-attestation-client
 
 initramfs_from_existing:
 	./initramfs/build-initramfs.sh -initrd $(INITRD_ORIG) -kernel-dir $(KERNEL_DIR) -init $(INIT_SCRIPT) -out $(INITRD)

@@ -178,7 +178,7 @@ while [ -n "$1" ]; do
 		-id-block) ID_BLOCK_FILE="$2"
 				shift
 				;;
-		-id-auth) ID_AUTH_FILE="$2"    
+		-id-auth) ID_AUTH_FILE="$2"
 			shift
 			;;
 		-host-data) HOST_DATA_FILE="$2"
@@ -202,7 +202,7 @@ done
 
 if [ -f "$TOML_CONFIG" ]; then
 	echo "Parsing config options from file"
-	if [ -z "$SMP" ]; then 
+	if [ -z "$SMP" ]; then
 		parse_value_for_key "vcpu_count" "$TOML_CONFIG"
 		SMP="$PARSE_RESULT"
 	fi
@@ -216,7 +216,7 @@ if [ -f "$TOML_CONFIG" ]; then
 		parse_value_for_key "kernel_file" "$TOML_CONFIG"
 	  KERNEL_FILE="$PARSE_RESULT"
 	fi
-	
+
 	if [ -z "$INITRD_FILE" ]; then
 		parse_value_for_key "initrd_file" "$TOML_CONFIG"
 	  INITRD_FILE="$PARSE_RESULT"
@@ -234,8 +234,10 @@ if [ -f "$TOML_CONFIG" ]; then
 
 fi
 
-TMP="$SEV_TOOLCHAIN_PATH/bin/qemu-system-x86_64"
-QEMU_EXE="$(readlink -e $TMP)"
+[ -z "$QEMU_EXE" ] && {
+    TMP="$SEV_TOOLCHAIN_PATH/bin/qemu-system-x86_64"
+    QEMU_EXE="$(readlink -e $TMP)"
+}
 [ -z "$QEMU_EXE" ] && {
 	echo "Can't locate qemu executable [$TMP]"
 	usage
@@ -383,10 +385,10 @@ done
 
 # If this is SEV guest then add the encryption device objects to enable support
 if [ ${SEV} = "1" ]; then
-	add_opts "-machine memory-encryption=sev0,vmport=off" 
+	add_opts "-machine memory-encryption=sev0,vmport=off"
 	get_cbitpos
 
-	if [[ -z "$SEV_POLICY" ]]; then 
+	if [[ -z "$SEV_POLICY" ]]; then
 		echo "-policy argument is mandatory"
 		exit 1
 	fi

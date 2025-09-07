@@ -69,8 +69,8 @@ boot_encrypted() {
     dhclient
 
     #start network server handle attestation + disk pw receival
-    /bin/server || exit 1
-    PW=$(cat ./disk_key.txt)
+    /bin/snp-attestation-client -url 'https://192.168.1.203:8443' > ./disk_key.txt || exit 1
+    read -r PW _ < ./disk_key.txt
     shred -u ./disk_key.txt
 
     ROOT_FS_CRYPTDEV="$(basename $ROOT)_crypt"

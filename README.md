@@ -59,7 +59,6 @@ not work out of the box and might require some adaptation.
 - `guest-vm` : Scripts to create new VMs and to convert the VM disks for usage with the [integrity-only](#run-integrity-only-workflow) or [encrypted](#run-encrypted-workflow) workflows
 - `initramfs` : Custom initramfs that is used by SNPGuard to transition to the rich Linux environment
 - `snp-builder` : Scripts for building SEV-SNP dependencies from scratch
-- `tools` : Server and client binaries to fetch the attestation report inside the VM and to verify it on the host
 
 ## Install dependencies
 
@@ -299,7 +298,8 @@ necessary adjustments to the filesystem, such as adding a `init` script,
 removing unnecessary folders, and changing file permissions. Finally, we build
 the initramfs archive using CPIO.
 
-First, however, we build some self-written tools that we use to facilitate the attestation process. All tools will be copied to the `build/bin` directory.
+First, however, we need to download some attastation tools.
+All tools will be copied to the `build/bin` directory.
 
 From the top-level directory, execute:
 ```bash
